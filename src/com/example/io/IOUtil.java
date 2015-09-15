@@ -27,7 +27,9 @@ public class IOUtil {
     }
 
     public static void bufferPrintHex(String filename) throws IOException{
-        try(BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename))){
+        //try with resource的正确用法是为各个资源声明独立的变量
+        try( FileInputStream fileInputStream = new FileInputStream(filename);
+             BufferedInputStream in = new BufferedInputStream(fileInputStream)){
             int c ;
             byte[] buffer = new byte[1024] ;
             while ((c = in.read(buffer,0,buffer.length))!=-1){
@@ -42,17 +44,45 @@ public class IOUtil {
         }
     }
 
-    public static void copyFile(String src, String dst) throws IOException{
+    public static void copyFileByBuffer(String src, String dst) throws IOException{
         Path path = Paths.get(dst) ;
         if (!Files.exists(path))
             Files.createFile(path) ;
-        try(BufferedInputStream in = new BufferedInputStream(new FileInputStream(src));
-        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(dst))){
+        try(    FileInputStream fileInputStream = new FileInputStream(src);
+                FileOutputStream fileOutputStream = new FileOutputStream(dst);
+                BufferedInputStream in = new BufferedInputStream(fileInputStream);
+                 BufferedOutputStream out = new BufferedOutputStream(fileOutputStream)){
             byte[] buffer = new byte[1024] ;
             int c ;
-            while ((c = in.read(buffer,0,buffer.length))!=-1){
-                out.write(buffer,0,c);
+            while ((c = in.read(buffer, 0, buffer.length))!=-1){
+                out.write(buffer, 0, c);
             }
+        }
+
+    }
+
+    public static void bufferedReader(String filename) throws IOException
+    {
+        try(FileInputStream fileInputStream = new FileInputStream(filename);
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+            BufferedReader in = new BufferedReader(inputStreamReader);
+            PrintWriter pw = new PrintWriter("guo.txt")) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);//一次读一行，不能识别换行
+
+                pw.println(line);
+                pw.flush();
+            }
+
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            bufferedReader("xue");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
